@@ -25,22 +25,22 @@ const CustomerAccountApproval = () => {
   const handleActivateUser = async (user) => {
     try {
       const updatedUser = { ...user, isActive: true };
-      await updateUser(user._id, updatedUser); // Ensure you are using _id instead of id
+      await updateUser(user.id, updatedUser);
       fetchUsers();
-      showAlert('Customer account activated successfully!');
+      showAlert('User activated successfully!');
     } catch (error) {
-      console.error('Error activating customer:', error);
+      console.error('Error activating user:', error);
     }
   };
 
   const handleDeactivateUser = async (user) => {
     try {
       const updatedUser = { ...user, isActive: false };
-      await updateUser(user._id, updatedUser); // Ensure you are using _id instead of id
+      await updateUser(user.id, updatedUser);
       fetchUsers();
-      showAlert('Customer account deactivated successfully!');
+      showAlert('User deactivated successfully!');
     } catch (error) {
-      console.error('Error deactivating customer:', error);
+      console.error('Error deactivating user:', error);
     }
   };
 

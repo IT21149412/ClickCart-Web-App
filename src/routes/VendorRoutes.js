@@ -2,13 +2,13 @@ import React, { useContext } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import VendorDashboard from '../pages/vendor/Dashboard';
 import ProductManagement from '../pages/vendor/ProductManagement';
-import InventoryManagement from '../pages/vendor/InventoryManagement';
 import OrderManagement from '../pages/vendor/OrderManagement';
 import { AuthContext } from '../contexts/AuthContext';
 import Sidebar from '../components/Sidebar/Sidebar';  
 import ProductDetails from '../pages/vendor/ProductDetails';
 import OrderDetails from '../pages/vendor/OrderDetails';
 import NotificationPanel from '../pages/vendor/NotificationPanel';
+import VendorReviews from '../pages/vendor/VendorReviews';
 
 const VendorRoutes = () => {
   const { user } = useContext(AuthContext);
@@ -24,7 +24,7 @@ const VendorRoutes = () => {
         <Routes>
           <Route path="/dashboard" element={<VendorDashboard />} />
           <Route path="/products" element={<ProductManagement />} />
-          <Route path="/inventory" element={<InventoryManagement />} />
+          <Route path="/inventory" element={<VendorReviews />} />
           <Route path="/orders" element={<OrderManagement />} />
           <Route path="/product/:id" element={<ProductDetails />} />
           <Route path="/Order/:id" element={<OrderDetails />} />

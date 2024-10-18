@@ -61,7 +61,7 @@ const Sidebar = () => {
             to="/vendor/inventory"
             className={({ isActive }) => (isActive ? 'active-link' : '')}
           >
-            Manage Inventory
+            Customer Reviews
           </NavLink>
           <NavLink
             to="/vendor/orders"

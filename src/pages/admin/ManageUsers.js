@@ -12,7 +12,8 @@ const ManageUsers = () => {
     name: '',
     email: '',
     role: 'CSR',
-    password: ''
+    password: '',
+    address: ''
   });
   const [editUser, setEditUser] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -221,6 +222,7 @@ const ManageUsers = () => {
             <th>Email</th>
             {activeTab === 'webUsers' && <th>Role</th>}
             {activeTab === 'mobileUsers' && <th>Date Created</th>}
+            <th>Address</th>
             <th>Status</th>
             <th>Actions</th>
           </tr>
@@ -232,6 +234,9 @@ const ManageUsers = () => {
               <td>{user.email}</td>
               {activeTab === 'webUsers' && <td>{user.role}</td>}
               {activeTab === 'mobileUsers' && <td>{formatDate(user.createdAt)}</td>}
+              
+              <td>{user.address}</td>
+
               <td className={user.isActive ? 'active-status' : 'deactivated-status'}>
                 {user.isActive ? 'Active' : 'Deactivated'}
               </td>
@@ -245,7 +250,7 @@ const ManageUsers = () => {
                       <i className="fa fa-trash"></i>
                     </button>
                   </>
-                ) : null}
+                ) : null} <br></br>
                 {user.isActive ? (
                   <button className="btn-toggle-status deactivate" onClick={() => handleDeactivateUser(user)}>
                     Deactivate
@@ -300,6 +305,21 @@ const ManageUsers = () => {
                   onChange={(e) =>
                     isEditing
                       ? setEditUser({ ...editUser, email: e.target.value })
+                      : handleInputChange(e)
+                  }
+                  required
+                  className="form-control"
+                />
+              </div>
+              <div className="form-group">
+                <label>Address:</label>
+                <input
+                  type="text"
+                  name="address"
+                  value={isEditing ? editUser.address : newUser.address}
+                  onChange={(e) =>
+                    isEditing
+                      ? setEditUser({ ...editUser, address: e.target.value })
                       : handleInputChange(e)
                   }
                   required

@@ -8,6 +8,7 @@ const OrderStatusManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedOrder, setSelectedOrder] = useState(null); // For modal order
   const [newStatus, setNewStatus] = useState(''); // Dropdown status
+  const [activeFilter, setActiveFilter] = useState('all'); // For active button styling
 
   useEffect(() => {
     fetchOrders();
@@ -41,7 +42,7 @@ const OrderStatusManagement = () => {
     }
   };
 
-  // Open modal
+  // Open modal to view order details
   const openModal = (order) => {
     setSelectedOrder(order);
     setNewStatus(order.orderStatus); // Initialize dropdown with current status
@@ -64,6 +65,19 @@ const OrderStatusManagement = () => {
     setFilteredOrders(filtered);
   };
 
+  // Filter for partially delivered orders
+  const filterPartiallyDeliveredOrders = () => {
+    setActiveFilter('partially-delivered');
+    const filtered = orders.filter(order => order.orderStatus === 'PARTIALLY DELIVERED');
+    setFilteredOrders(filtered);
+  };
+
+  // Show all orders
+  const showAllOrders = () => {
+    setActiveFilter('all');
+    setFilteredOrders(orders); // Reset to show all orders
+  };
+
   return (
     <div className="order-status-management">
       <h2>Order Status Management</h2>
@@ -75,6 +89,22 @@ const OrderStatusManagement = () => {
         onChange={handleSearch}
         className="search-bar"
       />
+
+      {/* Filter buttons */}
+      <div className="filter-buttons">
+        <button
+          onClick={showAllOrders}
+          className={`btn-filter ${activeFilter === 'all' ? 'active-filter' : ''}`}
+        >
+          Show All Orders
+        </button>
+        <button
+          onClick={filterPartiallyDeliveredOrders}
+          className={`btn-filter ${activeFilter === 'partially-delivered' ? 'active-filter' : ''}`}
+        >
+          Partially Delivered Orders
+        </button>
+      </div>
 
       <div className="table-container">
         <table className="orders-table">
@@ -91,11 +121,11 @@ const OrderStatusManagement = () => {
           <tbody>
             {filteredOrders.map((order) => (
               <tr key={order.id}>
-                <td>{order.id}</td> {/* Order Number */}
-                <td>{order.customerId || 'N/A'}</td> {/* Customer ID */}
-                <td>{order.items ? order.items.length : 0}</td> {/* Number of items */}
-                <td>${order.totalOrderPrice ? order.totalOrderPrice.toFixed(2) : '0.00'}</td> {/* Total Price */}
-                <td>{order.orderStatus}</td> {/* Order Status */}
+                <td>{order.id}</td>
+                <td>{order.customerId || 'N/A'}</td>
+                <td>{order.items ? order.items.length : 0}</td>
+                <td>${order.totalOrderPrice ? order.totalOrderPrice.toFixed(2) : '0.00'}</td>
+                <td>{order.orderStatus}</td>
                 <td>
                   <button className="btn-view-details" onClick={() => openModal(order)}>
                     View Details
@@ -111,12 +141,13 @@ const OrderStatusManagement = () => {
       {selectedOrder && (
         <div className="order-details-modal">
           <div className="modal-content">
-            <h3 style={{ fontSize: '1.5rem', color: '#333', fontWeight: 'bold' }}>Order Details</h3>
+            <h3>Order Details</h3>
             <p><strong>Order Number:</strong> {selectedOrder.id}</p>
             <p><strong>Customer:</strong> {selectedOrder.customerId || 'N/A'}</p>
             <p><strong>Total Price:</strong> ${selectedOrder.totalOrderPrice ? selectedOrder.totalOrderPrice.toFixed(2) : '0.00'}</p>
             <p><strong>Status:</strong> {selectedOrder.orderStatus}</p>
-            <p><strong>Items in Order:</strong></p>
+
+            <h4>Items in Order:</h4>
             <table className="items-table">
               <thead>
                 <tr>
@@ -149,10 +180,10 @@ const OrderStatusManagement = () => {
               value={newStatus}
               onChange={(e) => setNewStatus(e.target.value)}
             >
-              <option value="Processing">Processing</option>
-              <option value="Partially Delivered">Partially Delivered</option>
-              <option value="Delivered">Delivered</option>
-              <option value="Cancelled">Cancelled</option>
+              <option value="PROCESSING">Processing</option>
+              <option value="PARTIALLY DELIVERED">Partially Delivered</option>
+              <option value="DELIVERED">Delivered</option>
+              <option value="CANCELLED">Cancelled</option>
             </select>
 
             <div className="modal-actions">

@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { getOrderById } from '../../services/OrderService'; // Assuming a service to fetch order by ID
-import { useParams } from 'react-router-dom';
-import { jwtDecode } from 'jwt-decode';
-import './OrderDetails.scss';
+import React, { useState, useEffect } from "react";
+import { getOrderById } from "../../services/OrderService"; // Assuming a service to fetch order by ID
+import { useParams } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
+import "./OrderDetails.scss";
 
 const OrderDetails = () => {
   const { id } = useParams();
@@ -10,11 +10,11 @@ const OrderDetails = () => {
   const [vendorItems, setVendorItems] = useState([]);
 
   // Get the vendor ID from the JWT token
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem("token");
   let vendorId = null;
   if (token) {
     const decodedToken = jwtDecode(token);
-    vendorId = decodedToken.nameid;  
+    vendorId = decodedToken.nameid;
   }
 
   useEffect(() => {
@@ -27,12 +27,14 @@ const OrderDetails = () => {
       const orderData = response.data;
 
       // Filter the items that belong to the logged-in vendor
-      const relevantItems = orderData.items.filter(item => item.vendorId === vendorId);
-      
+      const relevantItems = orderData.items.filter(
+        (item) => item.vendorId === vendorId
+      );
+
       setOrder(orderData);
       setVendorItems(relevantItems); // Set the vendor-specific items
     } catch (error) {
-      console.error('Error fetching order details:', error);
+      console.error("Error fetching order details:", error);
     }
   };
 
@@ -43,17 +45,31 @@ const OrderDetails = () => {
   return (
     <div className="order-details-container">
       <h2>Order Details</h2>
-      
+
       <div className="details-content">
         {/* Left Section - Order Basic Information */}
         <div className="left-section">
           <div className="order-info">
-            <p><strong>Order ID:</strong> {order.id}</p>
-            <p><strong>Customer ID:</strong> {order.customerId}</p>
-            <p><strong>Order Status:</strong> {order.status}</p>
-            <p><strong>Order Created At:</strong> {new Date(order.createdAt).toLocaleString()}</p>
-            <p><strong>Partially Delivered:</strong> {order.isPartiallyDelivered ? 'Yes' : 'No'}</p>
-            <p><strong>Note:</strong> {order.note || 'No note provided.'}</p>
+            <p>
+              <strong>Order ID:</strong> {order.id}
+            </p>
+            <p>
+              <strong>Customer ID:</strong> {order.customerId}
+            </p>
+            <p>
+              <strong>Order Status:</strong> {order.status}
+            </p>
+            <p>
+              <strong>Order Created At:</strong>{" "}
+              {new Date(order.createdAt).toLocaleString()}
+            </p>
+            <p>
+              <strong>Partially Delivered:</strong>{" "}
+              {order.isPartiallyDelivered ? "Yes" : "No"}
+            </p>
+            <p>
+              <strong>Note:</strong> {order.note || "No note provided."}
+            </p>
           </div>
         </div>
 
@@ -64,11 +80,22 @@ const OrderDetails = () => {
             <div className="order-items">
               {vendorItems.map((item, index) => (
                 <div key={index} className="order-item">
-                  <p><strong>Product Name:</strong> {item.name}</p> {/* Assuming item.name exists */}
-                  <p><strong>Product ID:</strong> {item.productId}</p>
-                  <p><strong>Quantity:</strong> {item.quantity}</p>
-                  <p><strong>Price:</strong> ${item.price.toFixed(2)}</p>
-                  <p><strong>Total Price:</strong> ${item.totalPrice.toFixed(2)}</p>
+                  <p>
+                    <strong>Product Name:</strong> {item.productName}
+                  </p>{" "}
+                  {/* Assuming item.name exists */}
+                  <p>
+                    <strong>Product ID:</strong> {item.productId}
+                  </p>
+                  <p>
+                    <strong>Quantity:</strong> {item.quantity}
+                  </p>
+                  <p>
+                    <strong>Price:</strong> ${item.price.toFixed(2)}
+                  </p>
+                  <p>
+                    <strong>Total Price:</strong> ${item.totalPrice.toFixed(2)}
+                  </p>
                 </div>
               ))}
             </div>
@@ -84,11 +111,16 @@ const OrderDetails = () => {
         {order.vendorStatuses.length > 0 ? (
           <div className="vendor-status-list">
             {order.vendorStatuses
-              .filter(vendorStatus => vendorStatus.vendorId === vendorId) // Filter to show only the logged-in vendor's status
+              .filter((vendorStatus) => vendorStatus.vendorId === vendorId) // Filter to show only the logged-in vendor's status
               .map((vendorStatus, index) => (
                 <div key={index} className="vendor-status">
-                  <p><strong>Vendor ID:</strong> {vendorStatus.vendorId}</p>
-                  <p><strong>Is Delivered:</strong> {vendorStatus.isDelivered ? 'Yes' : 'No'}</p>
+                  <p>
+                    <strong>Vendor ID:</strong> {vendorStatus.vendorId}
+                  </p>
+                  <p>
+                    <strong>Is Delivered:</strong>{" "}
+                    {vendorStatus.isDelivered ? "Yes" : "No"}
+                  </p>
                 </div>
               ))}
           </div>

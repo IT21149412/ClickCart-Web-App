@@ -78,3 +78,15 @@ export const deactivateUser = async (id) => {
   };
   return await axios.put(`${API_URL}/api/user/${id}/deactivate`, null, config);
 };
+
+
+// Fetch a user by ID
+export const getUserById = async (id) => {
+  const token = localStorage.getItem('token');
+  const config = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+  return await axios.get(`${API_URL}/api/user/${id}`, config);
+};

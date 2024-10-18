@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import {
-  getOrders,
-  updateOrderStatusByVendor,
+  getOrdersByVendor,
+  updatePartialDeliveryStatus
 } from "../../services/OrderService";
 import "./VendorOrderManagement.scss";
 import { jwtDecode } from "jwt-decode";
@@ -11,6 +11,7 @@ const VendorOrderManagement = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [copiedOrderId, setCopiedOrderId] = useState(null);
   const navigate = useNavigate();
 
@@ -26,45 +27,26 @@ const VendorOrderManagement = () => {
     fetchVendorOrders();
   }, []);
 
-  // Fetch orders
   const fetchVendorOrders = async () => {
     try {
       setLoading(true);
-      const response = await getOrders(); // Fetch all orders
-      const allOrders = response.data;
-
-      // Filter out orders where vendor doesn't have any items, but still keep orders with mixed vendor items
-      const vendorOrders = allOrders
-        .map((order) => {
-          // Filter the order items to only show items belonging to the logged-in vendor
-          const vendorItems = order.items.filter(
-            (item) => item.vendorId === vendorId
-          );
-
-          // If the vendor has items in this order, return the filtered order with only vendor's items
-          if (vendorItems.length > 0) {
-            return { ...order, vendorItems }; // Add the vendorItems as a new field
-          }
-
-          return null; // Return null if no items belong to this vendor
-        })
-        .filter((order) => order !== null); // Remove any orders that don't have items from this vendor
-
-      setOrders(vendorOrders); // Set the filtered orders
+      const response = await getOrdersByVendor(vendorId);
+      const vendorOrders = response.data;
+      setOrders(vendorOrders);
       setLoading(false);
     } catch (error) {
       setError("Error fetching orders");
       setLoading(false);
     }
   };
-  // Update order status
-  const handleOrderStatus = async (orderId) => {
+
+  const handleMarkAsPartiallyDelivered = async (orderId) => {
     try {
-      // Use the 'partially-delivered' endpoint and pass the vendorId
-      await updateOrderStatusByVendor(orderId, vendorId); // Call the service function with orderId and vendorId
-      fetchVendorOrders(); // Refetch orders to get the latest status
+      const response = await updatePartialDeliveryStatus(orderId, vendorId);
+      setSuccessMessage(response);
+      fetchVendorOrders();
     } catch (error) {
-      console.error("Error updating order status", error);
+      setError("Failed to update the delivery status.");
     }
   };
 
@@ -78,13 +60,8 @@ const VendorOrderManagement = () => {
     }
   };
 
-  if (loading) {
-    return <p>Loading orders...</p>;
-  }
-
-  if (error) {
-    return <p>{error}</p>;
-  }
+  if (loading) return <p>Loading orders...</p>;
+  if (error) return <p>{error}</p>;
 
   const viewOrderDetails = (id) => {
     navigate(`/vendor/Order/${id}`);
@@ -93,13 +70,20 @@ const VendorOrderManagement = () => {
   return (
     <div className="vendor-order-management">
       <h1>Vendor Order Management</h1>
+
+      {successMessage && (
+        <div className="success-message">
+          <p>{successMessage}</p>
+        </div>
+      )}
+
       <table className="order-table">
         <thead>
           <tr>
             <th>Order ID</th>
             <th>Customer</th>
             <th>Status</th>
-            <th>Vendor Items</th> {/* New Column */}
+            <th>Vendor Items</th>
             <th>Actions</th>
             <th></th>
           </tr>
@@ -120,26 +104,28 @@ const VendorOrderManagement = () => {
                   <span className="copied-feedback">Copied!</span>
                 )}
               </td>
-              <td>{order.customerId}</td> {/* Assuming we have customerName */}
+              <td>{order.customerId}</td>
+              <td>{order.orderStatus}</td>
               <td>
-                {" "}
-                {order.vendorItems.map((item) => (
-                  <div key={item.id}>{item.status}</div>
-                ))}
-              </td>
-              <td>
-                {/* Display the items belonging to the logged-in vendor with name and quantity */}
-                {order.vendorItems.map((item) => (
-                  <div key={item.id}>{item.productName}</div>
-                ))}
+                {order.items && order.items.length > 0 ? (
+                  <ul>
+                    {order.items
+                      .filter((item) => item.vendorId === vendorId)
+                      .map((item) => (
+                        <li key={item.productId}>{item.productName}</li>
+                      ))}
+                  </ul>
+                ) : (
+                  <div>No vendor items available</div>
+                )}
               </td>
               <td>
                 <button
                   className="btn-deliver"
-                  onClick={() => handleOrderStatus(order.id)}
-                  disabled={order.status === "Delivered"}
+                  onClick={() => handleMarkAsPartiallyDelivered(order.id)}
+                  disabled={order.orderStatus === "PARTIALLY DELIVERED" || order.orderStatus === "DELIVERED"}
                 >
-                  Mark as Delivered
+                  Mark as Partially Delivered
                 </button>
               </td>
               <td>

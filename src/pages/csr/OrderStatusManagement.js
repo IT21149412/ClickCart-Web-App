@@ -8,6 +8,7 @@ const OrderStatusManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedOrder, setSelectedOrder] = useState(null); // For modal order
   const [newStatus, setNewStatus] = useState(''); // Dropdown status
+  const [note, setNote] = useState(''); // Note input
   const [activeFilter, setActiveFilter] = useState('all'); // For active button styling
 
   useEffect(() => {
@@ -26,17 +27,26 @@ const OrderStatusManagement = () => {
   };
 
   // Handle order status change
-  const handleStatusChange = async (orderId) => {
+  const handleStatusChange = async (orderId, role) => {
     if (!newStatus) {
       alert('Please select a status');
       return;
     }
 
+    if (!note) {
+      alert('Please enter a note');
+      return;
+    }
+
+    // Format the note with role and date
+    const formattedNote = `${note}`;
+
     try {
-      await updateOrderStatus(orderId, newStatus);
+      await updateOrderStatus(orderId, newStatus, formattedNote);
       fetchOrders(); // Refresh after update
       alert('Order status updated successfully!');
       setSelectedOrder(null); // Close modal
+      setNote(''); // Reset note
     } catch (error) {
       console.error('Error updating order status:', error);
     }
@@ -46,11 +56,13 @@ const OrderStatusManagement = () => {
   const openModal = (order) => {
     setSelectedOrder(order);
     setNewStatus(order.orderStatus); // Initialize dropdown with current status
+    setNote(order.note || ''); // Initialize with existing note or empty
   };
 
   // Close modal
   const closeModal = () => {
     setSelectedOrder(null);
+    setNote(''); // Clear note input field when modal closes
   };
 
   // Handle search
@@ -115,6 +127,7 @@ const OrderStatusManagement = () => {
               <th>Number of Items</th>
               <th>Total Price</th>
               <th>Status</th>
+              <th>Note</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -126,6 +139,7 @@ const OrderStatusManagement = () => {
                 <td>{order.items ? order.items.length : 0}</td>
                 <td>${order.totalOrderPrice ? order.totalOrderPrice.toFixed(2) : '0.00'}</td>
                 <td>{order.orderStatus}</td>
+                <td>{order.note || 'N/A'}</td> {/* Displaying note */}
                 <td>
                   <button className="btn-view-details" onClick={() => openModal(order)}>
                     View Details
@@ -146,6 +160,7 @@ const OrderStatusManagement = () => {
             <p><strong>Customer:</strong> {selectedOrder.customerId || 'N/A'}</p>
             <p><strong>Total Price:</strong> ${selectedOrder.totalOrderPrice ? selectedOrder.totalOrderPrice.toFixed(2) : '0.00'}</p>
             <p><strong>Status:</strong> {selectedOrder.orderStatus}</p>
+            <p><strong>Note:</strong> {selectedOrder.note || 'No notes added'}</p>
 
             <h4>Items in Order:</h4>
             <table className="items-table">
@@ -186,8 +201,17 @@ const OrderStatusManagement = () => {
               <option value="CANCELLED">Cancelled</option>
             </select>
 
+            {/* Input field for note */}
+            <label htmlFor="order-note">Add Note:</label>
+            <textarea
+              id="order-note"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="Enter note about the status change..."
+            />
+
             <div className="modal-actions">
-              <button className="btn-update" onClick={() => handleStatusChange(selectedOrder.id)}>
+              <button className="btn-update" onClick={() => handleStatusChange(selectedOrder.id, 'Admin/CSR')}>
                 Update Status
               </button>
               <button className="btn-close" onClick={closeModal}>

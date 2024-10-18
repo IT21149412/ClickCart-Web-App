@@ -23,3 +23,14 @@ export const updateOrderStatus = async (orderId, status, note) => {
   };
   return await axios.put(`${API_URL}/api/order/${orderId}/status`, { status, note }, config);
 };
+
+// Create a new order
+export const createOrder = async (orderData) => {
+  const token = localStorage.getItem('token');
+  const config = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+  return await axios.post(`${API_URL}/api/order/create`, orderData, config);
+};

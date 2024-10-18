@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { getAllOrders, updateOrderStatus } from '../../services/OrderStatusService';
+import { getAllOrders, updateOrderStatus, createOrder } from '../../services/OrderStatusService';
+import { getProducts } from '../../services/ProductService'; // For fetching products
 import './OrderStatusManagement.scss';
 
 const OrderStatusManagement = () => {
@@ -10,6 +11,13 @@ const OrderStatusManagement = () => {
   const [newStatus, setNewStatus] = useState(''); // Dropdown status
   const [note, setNote] = useState(''); // Note input
   const [activeFilter, setActiveFilter] = useState('all'); // For active button styling
+
+  const [showCreateModal, setShowCreateModal] = useState(false); // For creating an order
+  const [products, setProducts] = useState([]); // All products fetched
+  const [productSearchResults, setProductSearchResults] = useState([]); // Filtered search results
+  const [selectedProducts, setSelectedProducts] = useState([]); // Products added to the order
+  const [customerId, setCustomerId] = useState(''); // Customer ID input
+  const [address, setAddress] = useState(''); // Address input
 
   useEffect(() => {
     fetchOrders();
@@ -23,6 +31,16 @@ const OrderStatusManagement = () => {
       setFilteredOrders(response.data); // Default is to show all orders
     } catch (error) {
       console.error('Error fetching orders:', error);
+    }
+  };
+
+  // Fetch products for search
+  const fetchProducts = async () => {
+    try {
+      const response = await getProducts();
+      setProducts(response.data);
+    } catch (error) {
+      console.error('Error fetching products:', error);
     }
   };
 
@@ -90,6 +108,84 @@ const OrderStatusManagement = () => {
     setFilteredOrders(orders); // Reset to show all orders
   };
 
+  // Search products dynamically
+  const handleProductSearch = (event) => {
+    const query = event.target.value.toLowerCase();
+    if (query) {
+      const results = products.filter(product =>
+        product.name.toLowerCase().includes(query)
+      );
+      setProductSearchResults(results.length > 0 ? results : [{ id: 'no-results', name: 'No results found' }]);
+    } else {
+      setProductSearchResults([]);
+    }
+  };
+
+  // Add product to order
+  const addProductToOrder = (product) => {
+    if (product.id === 'no-results') return; // Prevent adding 'No results found'
+    const existingProduct = selectedProducts.find(p => p.id === product.id);
+    if (!existingProduct) {
+      setSelectedProducts([...selectedProducts, { ...product, quantity: 1 }]);
+    }
+    setProductSearchResults([]); // Clear the search results after adding a product
+  };
+
+  // Update product quantity
+  const updateProductQuantity = (productId, delta) => {
+    setSelectedProducts(prevProducts =>
+      prevProducts.map(product =>
+        product.id === productId
+          ? { ...product, quantity: Math.max(1, product.quantity + delta) }
+          : product
+      )
+    );
+  };
+
+  // Function to remove a product from the selected products list
+  const removeProductFromOrder = (productId) => {
+    setSelectedProducts((prevProducts) =>
+      prevProducts.filter((product) => product.id !== productId)
+    );
+  };
+
+
+  // Create order
+  const handleCreateOrder = async () => {
+    if (!customerId || !address || selectedProducts.length === 0) {
+      alert('Please fill in all fields and add at least one product.');
+      return;
+    }
+
+    const orderData = {
+      customerId,
+      address,
+      items: selectedProducts.map(product => ({
+        productId: product.id,
+        productName: product.name,
+        quantity: product.quantity,
+        price: product.price,
+        totalPrice: product.price * product.quantity,
+        vendorId: product.vendorId,
+        vendorName: product.vendorName
+      })),
+      totalOrderPrice: selectedProducts.reduce((total, product) => total + product.price * product.quantity, 0),
+      orderStatus: 'PURCHASED',
+      note: ''
+    };
+
+    try {
+      await createOrder(orderData);
+      alert('Order created successfully!');
+      setShowCreateModal(false);
+      setSelectedProducts([]);
+      setCustomerId('');
+      setAddress('');
+    } catch (error) {
+      console.error('Error creating order:', error);
+    }
+  };
+
   return (
     <div className="order-status-management">
       <h2>Order Status Management</h2>
@@ -115,6 +211,15 @@ const OrderStatusManagement = () => {
           className={`btn-filter ${activeFilter === 'partially-delivered' ? 'active-filter' : ''}`}
         >
           Partially Delivered Orders
+        </button>
+        <button
+          onClick={() => {
+            setShowCreateModal(true);
+            fetchProducts(); // Fetch products when opening the modal
+          }}
+          className="btn-create-order"
+        >
+          Create Order
         </button>
       </div>
 
@@ -188,7 +293,6 @@ const OrderStatusManagement = () => {
               </tbody>
             </table>
 
-            {/* Dropdown to change status */}
             <label htmlFor="order-status">Change Status:</label>
             <select
               id="order-status"
@@ -201,7 +305,6 @@ const OrderStatusManagement = () => {
               <option value="CANCELLED">Cancelled</option>
             </select>
 
-            {/* Input field for note */}
             <label htmlFor="order-note">Add Note:</label>
             <textarea
               id="order-note"
@@ -221,6 +324,94 @@ const OrderStatusManagement = () => {
           </div>
         </div>
       )}
+
+      {/* Modal for creating an order */}
+      {showCreateModal && (
+        <div className="order-details-modal">
+          <div className="modal-content">
+            <h3>Create New Order</h3>
+
+            <div className="form-group">
+              <label htmlFor="customer-id">Customer ID</label>
+              <input
+                type="text"
+                id="customer-id"
+                value={customerId}
+                onChange={(e) => setCustomerId(e.target.value)}
+                className="form-input"
+                placeholder="Enter customer ID"
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="address">Address</label>
+              <input
+                type="text"
+                id="address"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                className="form-input"
+                placeholder="Enter shipping address"
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="product-search">Search Product</label>
+              <input
+                type="text"
+                id="product-search"
+                className="form-input"
+                placeholder="Type to search for products"
+                onChange={handleProductSearch}
+              />
+              {productSearchResults.length > 0 && (
+                <ul className="product-search-results">
+                  {productSearchResults.map(product => (
+                    <li key={product.id} onClick={() => addProductToOrder(product)}>
+                      {product.name} - ${product.price}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {productSearchResults.length === 0 && searchQuery !== "" && (
+                <div className="no-results">No products found</div>
+              )}
+            </div>
+
+            {/* Selected products list */}
+            <h4>Selected Products</h4>
+            <div className="selected-products-container">
+              <ul className="selected-products-list">
+                {selectedProducts.map((product) => (
+                  <li key={product.id} className="selected-product-item">
+                    <span>{product.name} - ${product.price}</span>
+                    <div className="product-quantity">
+                      <button onClick={() => updateProductQuantity(product.id, -1)} disabled={product.quantity <= 1}>-</button>
+                      <span>{product.quantity}</span>
+                      <button onClick={() => updateProductQuantity(product.id, 1)}>+</button>
+                    </div>
+                    <button onClick={() => removeProductFromOrder(product.id)} className="btn-remove">
+                      Remove
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="form-group buttons-container">
+              <button onClick={handleCreateOrder} className="btn-create">
+                Create Order
+              </button>
+              <button onClick={() => setShowCreateModal(false)} className="btn-close">
+                Close
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+
     </div>
   );
 };

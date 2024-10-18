@@ -4,13 +4,13 @@ import {
   createProduct,
   updateProduct,
   deleteProduct,
-  activateProduct,    
+  activateProduct,
   deactivateProduct
 } from "../../services/ProductService";
 import "./ProductManagement.scss";
 import { useNavigate } from "react-router-dom";
 import { getCategories } from "../../services/CategoryService";
-import { jwtDecode } from 'jwt-decode';
+import { jwtDecode } from "jwt-decode"; // Correct import
 
 const ProductManagement = () => {
   const [products, setProducts] = useState([]);
@@ -26,7 +26,7 @@ const ProductManagement = () => {
     vendorId: "",
     imageUrl: "",
   });
-  const [validationErrors, setValidationErrors] = useState({});  
+  const [validationErrors, setValidationErrors] = useState({});
   const [imageFile, setImageFile] = useState(null);
   const [editProduct, setEditProduct] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -35,11 +35,18 @@ const ProductManagement = () => {
   const [categories, setCategories] = useState([]);
   const token = localStorage.getItem('token');
   let vendorId = null;
-  
+
+  useEffect(() => {
+    if (isModalOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+  }, [isModalOpen]);
+
   if (token) {
     const decodedToken = jwtDecode(token);
-    vendorId = decodedToken.nameid; 
-    // console.log("decode",decodedToken)
+    vendorId = decodedToken.nameid;
   }
 
   const navigate = useNavigate();
@@ -50,7 +57,7 @@ const ProductManagement = () => {
 
   useEffect(() => {
     fetchProducts();
-    fetchCategories(); 
+    fetchCategories();
   }, []);
 
   const fetchProducts = async () => {
@@ -66,7 +73,7 @@ const ProductManagement = () => {
   const fetchCategories = async () => {
     try {
       const response = await getCategories();
-      setCategories(response.data);   
+      setCategories(response.data);
     } catch (error) {
       console.error("Error fetching categories:", error);
     }
@@ -83,28 +90,28 @@ const ProductManagement = () => {
 
   const validateProduct = (product) => {
     const errors = {};
-    
+
     if (!product.name) {
       errors.name = "Product name is required";
     } else if (product.name.length < 3) {
       errors.name = "Product name must be at least 3 characters";
     }
-  
+
     if (!product.description) {
       errors.description = "Product description is required";
     }
-  
+
     if (product.price <= 0) {
       errors.price = "Price must be a positive number";
     }
-  
+
     if (product.stock < 0) {
       errors.stock = "Stock cannot be a negative number";
     }
-  
+
     return errors;
   };
-  
+
 
   const handleCreateProduct = async (e) => {
     e.preventDefault();
@@ -122,13 +129,13 @@ const ProductManagement = () => {
         stock: newProduct.stock,
         isActive: newProduct.isActive,
         categoryId: newProduct.categoryId || "default-category-id",
-        vendorId: newProduct.vendorId || "default-vendor-id",
+        vendorId: vendorId,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         lastUpdated: new Date().toISOString(),
       };
 
-      await createProduct(productData);
+      await createProduct(productData, imageFile);
       fetchProducts();
       showAlert("Product added successfully!");
       closeModal();
@@ -219,11 +226,11 @@ const ProductManagement = () => {
   const toggleProductStatus = async (product) => {
     try {
       if (product.isActive) {
-        await deactivateProduct(product.id);  
+        await deactivateProduct(product.id);
       } else {
-        await activateProduct(product.id);     
+        await activateProduct(product.id);
       }
-      fetchProducts();  
+      fetchProducts();
       showAlert(`Product ${product.isActive ? 'deactivated' : 'activated'} successfully!`);
     } catch (error) {
       console.error("Error toggling product status:", error);
@@ -258,7 +265,7 @@ const ProductManagement = () => {
             <th>Description</th>
             <th>Price</th>
             <th>Stock</th>
-            <th>Low Stock</th> 
+            <th>Low Stock</th>
             <th>Status</th>
             <th>Actions</th>
           </tr>
@@ -276,11 +283,17 @@ const ProductManagement = () => {
               </td>
               <td>
                 {product.isActive ? (
-                  <button className="btn-toggle-status deactivate" onClick={() => toggleProductStatus(product)}>
+                  <button
+                    className="btn-toggle-status deactivate"
+                    onClick={() => toggleProductStatus(product)}
+                  >
                     Deactivate
                   </button>
                 ) : (
-                  <button className="btn-toggle-status activate" onClick={() => toggleProductStatus(product)}>
+                  <button
+                    className="btn-toggle-status activate"
+                    onClick={() => toggleProductStatus(product)}
+                  >
                     Activate
                   </button>
                 )}
@@ -301,7 +314,7 @@ const ProductManagement = () => {
                   onClick={() => viewProductDetails(product.id)}
                 >
                   <i className="fa fa-eye"></i>
-                </button> 
+                </button>
               </td>
             </tr>
           ))}

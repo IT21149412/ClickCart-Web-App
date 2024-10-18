@@ -27,7 +27,7 @@ const ProductDetails = () => {
   return (
     <div className="product-details-container">
       <h2>{product.name}</h2>
-      
+
       <div className="details-content">
         {/* Left Section - Product Image */}
         <div className="left-section">

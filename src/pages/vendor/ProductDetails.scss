@@ -1,55 +1,46 @@
 .product-details-container {
-    padding: 20px;
-    background-color: #f9f9f9;
-  
-    h2 {
-      font-size: 24px;
-      margin-bottom: 20px;
-      color: #333;
-    }
-  
-    .details-content {
-      display: flex;
-      justify-content: space-between;
-      gap: 20px;
-      align-items: flex-start;
-    }
-  
-    .left-section, .right-section {
-      flex: 1;
-    }
-  
-    .product-image {
-      max-width: 100%;
-      max-height: 300px;
-      object-fit: cover;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-    }
-  
-    .product-info {
-      background-color: white;
-      padding: 15px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      margin-bottom: 20px;
-    }
-  
-    .product-info p {
-      margin: 5px 0;
-      font-size: 16px;
-    }
-  
-    .product-info strong {
-      margin-right: 10px;
-    }
-  
-    .description {
-      margin-top: 20px;
-    }
-  
-    .description p {
-      margin-top: 10px;
-    }
-  }
-  
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.details-content {
+  display: flex;
+  justify-content: space-between;
+}
+
+.left-section {
+  width: 40%; // Adjust this width if needed for a larger image
+}
+
+.product-image {
+  width: 100%;  // Make the image take full width of the left section
+  height: auto;  // Maintain aspect ratio
+  border-radius: 8px;  // Optional: Add border radius for aesthetics
+  object-fit: cover;  // Ensures the image covers the container without distortion
+}
+
+.right-section {
+  width: 55%;  // Adjust this width to complement the left section
+}
+
+.product-info {
+  margin-bottom: 20px;
+}
+
+.description {
+  margin-top: 40px;
+}
+
+h2, h3 {
+  color: #333;
+}
+
+p {
+  font-size: 16px;
+  color: #666;
+}
+
+strong {
+  color: #000;
+}
